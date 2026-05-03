@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  labels:
+    app: payment-service
+data:
+  mongodb_url: "mongodb://payment-mongodb:27017"
+  database_name: "payment_service_db"
+  service_name: "payment-service"
+  log_level: "INFO"

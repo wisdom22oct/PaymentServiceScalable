@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "8003:8003"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - DATABASE_NAME=payment_service_db
+      - SERVICE_NAME=payment-service
+      - SERVICE_PORT=8003
+      - LOG_LEVEL-INFO
+    depends_on:
+      - mongodb
+    networks:
+      - ticketing-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  mongodb:
+    image: mongo:7.0
+    container_name: payment-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - payment-mongodb-data:/data/db
+    networks:
+      - ticketing-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  ticketing-network:
+    driver: bridge
+
+volumes:
+  payment-mongodb-data:
+    driver: local

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-mongodb
+  labels:
+    app: payment-mongodb
+spec:
+  type: ClusterIP
+  selector:
+    app: payment-mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017
+      protocol: TCP
+      name: mongodb
+  clusterIP: None  # Headless service for StatefulSet-like behavior

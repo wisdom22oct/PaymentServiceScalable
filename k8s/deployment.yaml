@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  labels:
+    app: payment-service
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+        tier: backend
+    spec:
+      containers:
+      - name: payment-service
+        image: payment-service:latest
+        imagePullPolicy: Never # For local Minikube development
+        ports:
+        - containerPort: 8003
+          name: http
+        env:
+        - name: MONGODB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: payment-config
+              key: mongodb_url
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: payment-config
+              key: database_name
+        - name: SERVICE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: payment-config
+              key: service_name
+        - name: SERVICE_PORT
+          value: "8003"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: payment-config
+              key: log_level
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8003
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always
